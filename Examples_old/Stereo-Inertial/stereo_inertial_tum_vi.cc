@@ -22,7 +22,7 @@
 #include<chrono>
 #include <ctime>
 #include <sstream>
-
+#define COMPILEDWITHC11
 #include<opencv2/core/core.hpp>
 
 #include<System.h>
@@ -196,6 +196,7 @@ int main(int argc, char **argv)
                     first_imu[seq]++;
                 }
             }
+            
 
             /*cout << "first imu: " << first_imu[seq] << endl;
             cout << "first imu time: " << fixed << vTimestampsImu[seq][0] << endl;

@@ -25,7 +25,7 @@
 #include<opencv2/core/core.hpp>
 
 #include<System.h>
-
+#define COMPILEDWITHC11
 using namespace std;
 
 void LoadImages(const string &strPathLeft, const string &strPathRight, const string &strPathTimes,

@@ -22,7 +22,7 @@
 #include<chrono>
 
 #include<opencv2/core/core.hpp>
-
+#define COMPILEDWITHC11
 #include<System.h>
 
 using namespace std;

@@ -23,8 +23,12 @@
 #include"Atlas.h"
 #include"MapPoint.h"
 #include"KeyFrame.h"
-#include "Settings.h"
+#include"Settings.h"
 #include<pangolin/pangolin.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 #include<mutex>
 
@@ -42,7 +46,7 @@ public:
     void newParameterLoader(Settings* settings);
 
     Atlas* mpAtlas;
-
+    pcl::VoxelGrid<pcl::PointXYZ> ConvertToVoxelizedPointCloud();
     void DrawMapPoints();
     void DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const bool bDrawInertialGraph, const bool bDrawOptLba);
     void DrawCurrentCamera(pangolin::OpenGlMatrix &Twc);

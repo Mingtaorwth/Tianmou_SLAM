@@ -20,7 +20,7 @@
 #include<algorithm>
 #include<fstream>
 #include<chrono>
-
+#define COMPILEDWITHC11
 #include<opencv2/core/core.hpp>
 
 #include<System.h>

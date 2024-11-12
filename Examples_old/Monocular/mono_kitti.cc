@@ -21,7 +21,7 @@
 #include<fstream>
 #include<chrono>
 #include<iomanip>
-
+#define COMPILEDWITHC11
 #include<opencv2/core/core.hpp>
 
 #include"System.h"

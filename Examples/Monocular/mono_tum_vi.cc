@@ -22,7 +22,7 @@
 #include<chrono>
 #include<iomanip>
 #include <unistd.h>
-
+#define COMPILEDWITHC11
 #include<opencv2/core/core.hpp>
 
 #include"System.h"
