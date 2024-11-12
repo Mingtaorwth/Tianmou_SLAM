@@ -1,26 +1,17 @@
-/**
-* This file is part of ORB-SLAM3
-*
-* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-* Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-*
-* ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with ORB-SLAM3.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
 #include "Viewer.h"
 #include <pangolin/pangolin.h>
+#include "MapDrawer.h"
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/point_cloud.h>  // pcl::toROSMsg()
+#include <ros/ros.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include <mutex>
+ros::Publisher pub;
 
 namespace ORB_SLAM3
 {
@@ -54,6 +45,56 @@ Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer
 
     mbStopTrack = false;
 }
+
+// pcl::PointCloud<pcl::PointXYZ>::Ptr ConvertToVoxelizedPointCloud(Atlas* pAtlas)
+// {
+//     Map* pActiveMap = pAtlas->GetCurrentMap();
+//     if (!pActiveMap)
+//         return nullptr;
+
+//     const std::vector<MapPoint*>& vpMPs = pActiveMap->GetAllMapPoints();
+//     const std::vector<MapPoint*>& vpRefMPs = pActiveMap->GetReferenceMapPoints();
+
+//     std::set<MapPoint*> spRefMPs(vpRefMPs.begin(), vpRefMPs.end());
+
+//     // 创建 PCL 点云
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+//     // 遍历所有有效的 MapPoint，并将其添加到 PCL 点云
+//     for (size_t i = 0, iend = vpMPs.size(); i < iend; i++) {   
+//         if (vpMPs[i]->isBad() || spRefMPs.count(vpMPs[i]))
+//             continue;
+
+//         Eigen::Matrix<float, 3, 1> pos = vpMPs[i]->GetWorldPos();
+//         cloud->points.emplace_back(pos(0), pos(1), pos(2));
+//     }
+
+//     // 设置点云的宽度和高度
+//     cloud->width = cloud->points.size();
+//     cloud->height = 1;
+//     cloud->is_dense = false;
+
+//     // 使用 VoxelGrid 滤波器进行体素化
+//     pcl::VoxelGrid<pcl::PointXYZ> voxel_grid;
+//     voxel_grid.setInputCloud(cloud);
+//     float voxel_size = 0.5f;  // 设置体素大小
+//     voxel_grid.setLeafSize(voxel_size, voxel_size, voxel_size);
+
+//     // 体素化后的点云输出到 cloud_voxelized
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_voxelized(new pcl::PointCloud<pcl::PointXYZ>);
+//     voxel_grid.filter(*cloud_voxelized);
+
+//     // 格式化输出体素化前后的点云信息
+//     std::cout << std::fixed << std::setprecision(2);
+//     std::cout << "-----------------------------------------" << std::endl;
+//     std::cout << "Original Point Cloud Size: " << cloud->points.size() << " points" << std::endl;
+//     std::cout << "Voxel Size: " << voxel_size << std::endl;
+//     std::cout << "Voxelized Point Cloud Size: " << cloud_voxelized->points.size() << " points" << std::endl;
+//     std::cout << "Reduction: " << ((1.0 - (float)cloud_voxelized->points.size() / cloud->points.size()) * 100) << "%" << std::endl;
+//     std::cout << "-----------------------------------------" << std::endl;
+
+//     return cloud_voxelized;
+// }
 
 void Viewer::newParameterLoader(Settings *settings) {
     mImageViewerScale = 1.f;
@@ -161,10 +202,20 @@ bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
 
 void Viewer::Run()
 {
+    if (!ros::isInitialized()) {
+        int argc = 0;
+        char** argv = nullptr;
+        ros::init(argc, argv, "voxelized_cloud_publisher");
+    }
+
+    // 创建 NodeHandle 用于发布点云数据
+    ros::NodeHandle nh;
+    ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>("voxelized_cloud", 1);
+
     mbFinished = false;
     mbStopped = false;
 
-    pangolin::CreateWindowAndBind("ORB-SLAM3: Map Viewer",1024,768);
+    pangolin::CreateWindowAndBind("TianMou SLAM Viewer",1024,768);
 
     // 3D Mouse handler requires depth testing to be enabled
     glEnable(GL_DEPTH_TEST);
@@ -204,7 +255,7 @@ void Viewer::Run()
     Twc.SetIdentity();
     pangolin::OpenGlMatrix Ow; // Oriented with g in the z axis
     Ow.SetIdentity();
-    cv::namedWindow("ORB-SLAM3: Current Frame");
+    cv::namedWindow("Current Frame");
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -219,7 +270,13 @@ void Viewer::Run()
     float trackedImageScale = mpTracker->GetImageScale();
 
     cout << "Starting the Viewer" << endl;
-    while(1)
+
+    // pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Voxel Visualization"));
+    // viewer->setBackgroundColor(1, 1, 1);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_voxelized(new pcl::PointCloud<pcl::PointXYZ>);
+    ros::Rate rate(100);
+
+    while(ros::ok())
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -315,7 +372,21 @@ void Viewer::Run()
         if(menuShowPoints)
             mpMapDrawer->DrawMapPoints();
 
+        pcl::VoxelGrid<pcl::PointXYZ> voxelized_cloud = mpMapDrawer->ConvertToVoxelizedPointCloud();
+        voxelized_cloud.filter(*cloud_voxelized);
+
+        sensor_msgs::PointCloud2 cloud_msg;
+        pcl::toROSMsg(*cloud_voxelized, cloud_msg);
+        cloud_msg.header.frame_id = "map"; // 根据需求设置参考坐标系
+        cloud_msg.header.stamp = ros::Time::now();
+
+        // 发布点云消息
+        pub.publish(cloud_msg);
+
+        rate.sleep();
+
         pangolin::FinishFrame();
+
 
         cv::Mat toShow;
         cv::Mat im = mpFrameDrawer->DrawFrame(trackedImageScale);
@@ -335,7 +406,7 @@ void Viewer::Run()
             cv::resize(toShow, toShow, cv::Size(width, height));
         }
 
-        cv::imshow("ORB-SLAM3: Current Frame",toShow);
+        cv::imshow("Current Frame",toShow);
         cv::waitKey(mT);
 
         if(menuReset)
@@ -378,6 +449,10 @@ void Viewer::Run()
 
         if(CheckFinish())
             break;
+        
+        // viewer->spinOnce(1);
+        ros::spinOnce();
+        rate.sleep();
     }
 
     SetFinish();

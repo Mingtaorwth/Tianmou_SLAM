@@ -24,6 +24,7 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
+#include <algorithm>
 
 #include <condition_variable>
 
@@ -34,6 +35,7 @@
 
 
 #include <System.h>
+#define COMPILEDWITHC11
 
 using namespace std;
 

@@ -24,7 +24,7 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
-
+#define COMPILEDWITHC11
 #include <opencv2/core/core.hpp>
 
 #include <librealsense2/rs.hpp>

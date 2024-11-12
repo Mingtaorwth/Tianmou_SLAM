@@ -1,0 +1,20 @@
+<package format="2">
+<name>Tianmou_SLAM</name>
+<version>0.1.0</version>
+<description>The my_cpp_project package</description>
+<maintainer email="user@domain.com">Your Name</maintainer>
+<license>BSD</license>
+<!--  Build dependencies  -->
+<buildtool_depend>catkin</buildtool_depend>
+<build_depend>roscpp</build_depend>
+<build_depend>std_msgs</build_depend>
+<!--  Run-time dependencies  -->
+<exec_depend>roscpp</exec_depend>
+<exec_depend>std_msgs</exec_depend>
+<!--  Build tools  -->
+<build_export_depend>catkin</build_export_depend>
+<!--  Export information for other tools  -->
+<export>
+<!--  Other tools can request additional information be placed here  -->
+</export>
+</package>

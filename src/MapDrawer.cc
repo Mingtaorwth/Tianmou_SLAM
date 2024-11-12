@@ -1,26 +1,9 @@
-/**
-* This file is part of ORB-SLAM3
-*
-* Copyright (C) 2017-2021 Carlos Campos, Richard Elvira, Juan J. Gómez Rodríguez, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-* Copyright (C) 2014-2016 Raúl Mur-Artal, José M.M. Montiel and Juan D. Tardós, University of Zaragoza.
-*
-* ORB-SLAM3 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-* License as published by the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-* the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with ORB-SLAM3.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "MapDrawer.h"
 #include "MapPoint.h"
 #include "KeyFrame.h"
 #include <pangolin/pangolin.h>
 #include <mutex>
+#include <iomanip> // 用于格式化输出
 
 namespace ORB_SLAM3
 {
@@ -148,10 +131,10 @@ void MapDrawer::DrawMapPoints()
 
     glPointSize(mPointSize);
     glBegin(GL_POINTS);
-    glColor3f(0.0,0.0,0.0);
+    glColor3f(0.5,0.0,0.7);
 
     for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
-    {
+    {   
         if(vpMPs[i]->isBad() || spRefMPs.count(vpMPs[i]))
             continue;
         Eigen::Matrix<float,3,1> pos = vpMPs[i]->GetWorldPos();
@@ -173,6 +156,39 @@ void MapDrawer::DrawMapPoints()
     }
 
     glEnd();
+}
+
+pcl::VoxelGrid<pcl::PointXYZ> MapDrawer::ConvertToVoxelizedPointCloud() 
+{
+    Map* pActiveMap = mpAtlas->GetCurrentMap();
+    
+    const vector<MapPoint*> &vpMPs = pActiveMap->GetAllMapPoints();
+    const vector<MapPoint*> &vpRefMPs = pActiveMap->GetReferenceMapPoints();
+    std::set<MapPoint*> spRefMPs(vpRefMPs.begin(), vpRefMPs.end());
+
+    // 创建一个 PCL 点云对象
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    
+    for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
+    {   
+        Eigen::Matrix<float,3,1> pos = vpMPs[i]->GetWorldPos();
+        cloud->points.emplace_back(pos(0), pos(1), pos(2));
+        
+    }
+
+    // 设置点云的基本参数
+    cloud->width = cloud->points.size();
+    cloud->height = 1;
+    cloud->is_dense = false;
+
+    // 创建 VoxelGrid 滤波器
+    pcl::VoxelGrid<pcl::PointXYZ> voxel_grid;
+    voxel_grid.setInputCloud(cloud);
+    float voxel_size = 0.08f;  // 设置体素大小
+    voxel_grid.setLeafSize(voxel_size, voxel_size, voxel_size);
+
+    // 返回 voxel_grid 对象
+    return voxel_grid;
 }
 
 void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const bool bDrawInertialGraph, const bool bDrawOptLba)

@@ -33,8 +33,8 @@ namespace ORB_SLAM3
 {
 
     const int ORBmatcher::TH_HIGH = 100;
-    const int ORBmatcher::TH_LOW = 50;
-    const int ORBmatcher::HISTO_LENGTH = 30;
+    const int ORBmatcher::TH_LOW = 60;
+    const int ORBmatcher::HISTO_LENGTH = 20;
 
     ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
     {

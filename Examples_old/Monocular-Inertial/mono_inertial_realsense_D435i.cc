@@ -24,7 +24,7 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
-
+#define COMPILEDWITHC11
 #include <condition_variable>
 
 #include <opencv2/core/core.hpp>

@@ -20,6 +20,7 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
+#include "Atlas.h"
 #include "FrameDrawer.h"
 #include "MapDrawer.h"
 #include "Tracking.h"
@@ -36,6 +37,7 @@ class FrameDrawer;
 class MapDrawer;
 class System;
 class Settings;
+class Atlas;
 
 class Viewer
 {
@@ -74,6 +76,7 @@ private:
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
     Tracking* mpTracker;
+    Atlas* mpAtlas;
 
     // 1/fps in ms
     double mT;
