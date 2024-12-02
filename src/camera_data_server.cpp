@@ -667,11 +667,11 @@ cv::Mat DataController::getIxy(){
 
     tianmouc::isp::SDlSDR_2_SDxSDy(spatioDiffl,spatioDiffr,Ix,Iy);
 
-    // double minVal, maxVal;
+    double minVal, maxVal;
 
-    // cv::Point minLoc, maxLoc;
+    cv::Point minLoc, maxLoc;
 
-    // // 查找最小值和最大值
+    // 查找最小值和最大值
     // cv::minMaxLoc(spatioDiffl, &minVal, &maxVal, &minLoc, &maxLoc);
 
     // std::cout << "Min Value: " << minVal << " at (" << minLoc.x << ", " << minLoc.y << ")" << std::endl;
@@ -712,12 +712,21 @@ cv::Mat DataController::getIxy(){
     // cv::Point minLoc, maxLoc;
 
     double lowThreshold1 = -100;
-    double highThreshold1 = -6;
+    double highThreshold1 = -1;
 
-    double lowThreshold2 = 6;
+    double lowThreshold2 = 1;
     double highThreshold2 = 100;
 
     // 创建两个掩码，分别用于 -20 到 -5 和 5 到 20 的像素
+    // cv::Mat mask1, mask2;
+    // cv::inRange(result, lowThreshold1, highThreshold1, mask1);
+    // cv::inRange(result, lowThreshold2, highThreshold2, mask2);
+
+    // // 合并两个掩码
+    // cv::Mat combinedMask;
+    // cv::bitwise_or(mask1, mask2, combinedMask);
+
+    // 使用合并的掩码保留符合条件的像素
     cv::Mat mask1, mask2;
     cv::inRange(result, lowThreshold1, highThreshold1, mask1);
     cv::inRange(result, lowThreshold2, highThreshold2, mask2);
@@ -732,17 +741,21 @@ cv::Mat DataController::getIxy(){
 
     // 归一化结果
     // cv::Mat sd;
-    // cv::normalize(filtered, sd, 0, 13, cv::NORM_MINMAX, CV_32F);
+    // cv::normalize(filtered, sd, 0, 255, cv::NORM_MINMAX, CV_32F);
 
     // conv_and_threshold_inplace_2(sd, 9, 1.f);
 
-    // sd.convertTo(sd, CV_8U);
+    // filtered.convertTo(filtered, CV_8UC1);
+
+    // cv::medianBlur(sd, sd, 5);
 
     // double alpha = 2.0; // 对比度增益，值越大对比度越高
     // int beta = 0;       // 亮度调整
 
-    // // 应用公式 new_pixel = alpha * original_pixel + beta
+    // 应用公式 new_pixel = alpha * original_pixel + beta
     // sd.convertTo(sd, -1, alpha, beta);
+
+    // filtered = filtered;
 
     return (filtered + 20) * 3;
 }

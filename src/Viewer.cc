@@ -1,12 +1,12 @@
 #include "Viewer.h"
 #include <pangolin/pangolin.h>
 #include "MapDrawer.h"
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/conversions.h>
-#include <pcl_ros/point_cloud.h>  // pcl::toROSMsg()
+// #include <pcl/point_types.h>
+// #include <pcl/point_cloud.h>
+// #include <pcl/filters/voxel_grid.h>
+// #include <pcl/visualization/pcl_visualizer.h>
+// #include <pcl/conversions.h>
+// #include <pcl_ros/point_cloud.h>  // pcl::toROSMsg()
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 
@@ -273,8 +273,8 @@ void Viewer::Run()
 
     // pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Voxel Visualization"));
     // viewer->setBackgroundColor(1, 1, 1);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_voxelized(new pcl::PointCloud<pcl::PointXYZ>);
-    ros::Rate rate(100);
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_voxelized(new pcl::PointCloud<pcl::PointXYZ>);
+    // ros::Rate rate(100);
 
     while(ros::ok())
     {
@@ -372,18 +372,18 @@ void Viewer::Run()
         if(menuShowPoints)
             mpMapDrawer->DrawMapPoints();
 
-        pcl::VoxelGrid<pcl::PointXYZ> voxelized_cloud = mpMapDrawer->ConvertToVoxelizedPointCloud();
-        voxelized_cloud.filter(*cloud_voxelized);
+        // pcl::VoxelGrid<pcl::PointXYZ> voxelized_cloud = mpMapDrawer->ConvertToVoxelizedPointCloud();
+        // voxelized_cloud.filter(*cloud_voxelized);
 
-        sensor_msgs::PointCloud2 cloud_msg;
-        pcl::toROSMsg(*cloud_voxelized, cloud_msg);
-        cloud_msg.header.frame_id = "map"; // 根据需求设置参考坐标系
-        cloud_msg.header.stamp = ros::Time::now();
+        // sensor_msgs::PointCloud2 cloud_msg;
+        // pcl::toROSMsg(*cloud_voxelized, cloud_msg);
+        // cloud_msg.header.frame_id = "map"; // 根据需求设置参考坐标系
+        // cloud_msg.header.stamp = ros::Time::now();
 
-        // 发布点云消息
-        pub.publish(cloud_msg);
+        // // 发布点云消息
+        // pub.publish(cloud_msg);
 
-        rate.sleep();
+        // rate.sleep();
 
         pangolin::FinishFrame();
 
@@ -451,8 +451,8 @@ void Viewer::Run()
             break;
         
         // viewer->spinOnce(1);
-        ros::spinOnce();
-        rate.sleep();
+        // ros::spinOnce();
+        // rate.sleep();
     }
 
     SetFinish();

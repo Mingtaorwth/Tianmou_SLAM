@@ -1675,6 +1675,7 @@ void Tracking::PreintegrateIMU()
     }
 
     const int n = mvImuFromLastFrame.size()-1;
+    // std::cout << "IMU_SIZE " << mvImuFromLastFrame.size() <<std::endl;
     if(n==0){
         cout << "Empty IMU measurements vector!!!\n";
         return;
@@ -1766,6 +1767,7 @@ bool Tracking::PredictStateIMU()
         const Eigen::Vector3f twb1 = mLastFrame.GetImuPosition();
         const Eigen::Matrix3f Rwb1 = mLastFrame.GetImuRotation();
         const Eigen::Vector3f Vwb1 = mLastFrame.GetVelocity();
+        
         const Eigen::Vector3f Gz(0, 0, -IMU::GRAVITY_VALUE);
         const float t12 = mCurrentFrame.mpImuPreintegratedFrame->dT;
 
@@ -2003,7 +2005,7 @@ void Tracking::Track()
                         bOK = Relocalization();
                         //std::cout << "mCurrentFrame.mTimeStamp:" << to_string(mCurrentFrame.mTimeStamp) << std::endl;
                         //std::cout << "mTimeStampLost:" << to_string(mTimeStampLost) << std::endl;
-                        if(mCurrentFrame.mTimeStamp-mTimeStampLost>3.0f && !bOK)
+                        if(mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !bOK)
                         {
                             mState = LOST;
                             Verbose::PrintMess("Track Lost...", Verbose::VERBOSITY_NORMAL);
@@ -2180,6 +2182,11 @@ void Tracking::Track()
         {
             if(bOK)
             {
+                // cout << "mCurrentFrame.mnId: " << mCurrentFrame.mnId << endl;
+                // cout << "mnLastRelocFrameId + mnFramesToResetIMU: " 
+                //     << (mnLastRelocFrameId + mnFramesToResetIMU) << endl;
+                // cout << "Condition (mCurrentFrame.mnId == mnLastRelocFrameId + mnFramesToResetIMU): " 
+                //     << (mCurrentFrame.mnId == (mnLastRelocFrameId + mnFramesToResetIMU)) << endl;
                 if(mCurrentFrame.mnId==(mnLastRelocFrameId+mnFramesToResetIMU))
                 {
                     cout << "RESETING FRAME!!!" << endl;
@@ -2724,7 +2731,7 @@ bool Tracking::TrackReferenceKeyFrame()
 
     // We perform first an ORB matching with the reference keyframe
     // If enough matches are found we setup a PnP solver
-    ORBmatcher matcher(0.7,true);
+    ORBmatcher matcher(0.9,true);
     vector<MapPoint*> vpMapPointMatches;
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
@@ -2775,7 +2782,7 @@ bool Tracking::TrackReferenceKeyFrame()
     if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
         return true;
     else
-        return nmatchesMap>=10;
+        return nmatchesMap>=5;
 }
 
 void Tracking::UpdateLastFrame()
@@ -3045,7 +3052,7 @@ bool Tracking::TrackLocalMap()
     }
     else if (mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
     {
-        if(mnMatchesInliers<15)
+        if(mnMatchesInliers<3)
         {
             return false;
         }

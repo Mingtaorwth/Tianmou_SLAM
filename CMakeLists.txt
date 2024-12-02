@@ -155,8 +155,12 @@ target_link_libraries(${PROJECT_NAME}
 
 # RealSense SDK 支持
 if(realsense2_FOUND)
-    include_directories(${realsense_INCLUDE_DIR})
-    target_link_libraries(${PROJECT_NAME} ${realsense2_LIBRARY})
+    include_directories(${PROJECT_NAME}
+    ${realsense_INCLUDE_DIR}
+    )
+    target_link_libraries(${PROJECT_NAME}
+    ${realsense2_LIBRARY}
+    )
 endif()
 
 # 编译 g2o 库

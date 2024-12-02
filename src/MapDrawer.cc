@@ -158,38 +158,38 @@ void MapDrawer::DrawMapPoints()
     glEnd();
 }
 
-pcl::VoxelGrid<pcl::PointXYZ> MapDrawer::ConvertToVoxelizedPointCloud() 
-{
-    Map* pActiveMap = mpAtlas->GetCurrentMap();
+// pcl::VoxelGrid<pcl::PointXYZ> MapDrawer::ConvertToVoxelizedPointCloud() 
+// {
+//     Map* pActiveMap = mpAtlas->GetCurrentMap();
     
-    const vector<MapPoint*> &vpMPs = pActiveMap->GetAllMapPoints();
-    const vector<MapPoint*> &vpRefMPs = pActiveMap->GetReferenceMapPoints();
-    std::set<MapPoint*> spRefMPs(vpRefMPs.begin(), vpRefMPs.end());
+//     const vector<MapPoint*> &vpMPs = pActiveMap->GetAllMapPoints();
+//     const vector<MapPoint*> &vpRefMPs = pActiveMap->GetReferenceMapPoints();
+//     std::set<MapPoint*> spRefMPs(vpRefMPs.begin(), vpRefMPs.end());
 
-    // 创建一个 PCL 点云对象
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+//     // 创建一个 PCL 点云对象
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
     
-    for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
-    {   
-        Eigen::Matrix<float,3,1> pos = vpMPs[i]->GetWorldPos();
-        cloud->points.emplace_back(pos(0), pos(1), pos(2));
+//     for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
+//     {   
+//         Eigen::Matrix<float,3,1> pos = vpMPs[i]->GetWorldPos();
+//         cloud->points.emplace_back(pos(0), pos(1), pos(2));
         
-    }
+//     }
 
-    // 设置点云的基本参数
-    cloud->width = cloud->points.size();
-    cloud->height = 1;
-    cloud->is_dense = false;
+//     // 设置点云的基本参数
+//     cloud->width = cloud->points.size();
+//     cloud->height = 1;
+//     cloud->is_dense = false;
 
-    // 创建 VoxelGrid 滤波器
-    pcl::VoxelGrid<pcl::PointXYZ> voxel_grid;
-    voxel_grid.setInputCloud(cloud);
-    float voxel_size = 0.08f;  // 设置体素大小
-    voxel_grid.setLeafSize(voxel_size, voxel_size, voxel_size);
+//     // 创建 VoxelGrid 滤波器
+//     pcl::VoxelGrid<pcl::PointXYZ> voxel_grid;
+//     voxel_grid.setInputCloud(cloud);
+//     float voxel_size = 0.08f;  // 设置体素大小
+//     voxel_grid.setLeafSize(voxel_size, voxel_size, voxel_size);
 
-    // 返回 voxel_grid 对象
-    return voxel_grid;
-}
+//     // 返回 voxel_grid 对象
+//     return voxel_grid;
+// }
 
 void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph, const bool bDrawInertialGraph, const bool bDrawOptLba)
 {

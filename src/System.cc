@@ -691,9 +691,11 @@ void System::SaveTrajectoryEuRoC(const string &filename)
     // After a loop closure the first keyframe might not be at the origin.
     Sophus::SE3f Twb; // Can be word to cam0 or world to b depending on IMU or not.
     if (mSensor==IMU_MONOCULAR || mSensor==IMU_STEREO || mSensor==IMU_RGBD)
-        Twb = vpKFs[0]->GetImuPose();
-    else
+        {Twb = vpKFs[0]->GetImuPose();}
+    else{
         Twb = vpKFs[0]->GetPoseInverse();
+    }
+        
 
     ofstream f;
     f.open(filename.c_str());

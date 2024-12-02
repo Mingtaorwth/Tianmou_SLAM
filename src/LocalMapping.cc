@@ -133,9 +133,12 @@ void LocalMapping::Run()
 
                         if(dist>0.05)
                             mTinit += mpCurrentKeyFrame->mTimeStamp - mpCurrentKeyFrame->mPrevKF->mTimeStamp;
+                            // std::cout << "Current Frame TimeStamp: " << mpCurrentKeyFrame->mTimeStamp << std::endl;
+                            // std::cout << "Previous Frame TimeStamp: " << mpCurrentKeyFrame->mPrevKF->mTimeStamp << std::endl;
+                            // std::cout << "mTinit " << mTinit << std::endl;
                         if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
                         {
-                            if((mTinit<10.f) && (dist<0.02))
+                            if((mTinit<2.f) && (dist<0.02))
                             {
                                 cout << "Not enough motion for initializing. Reseting..." << endl;
                                 unique_lock<mutex> lock(mMutexReset);

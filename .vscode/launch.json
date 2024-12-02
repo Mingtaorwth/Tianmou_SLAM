@@ -1,0 +1,42 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug stereo_tianmou",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/Examples_old/Stereo/stereo_tianmou",
+      "args": [
+        "/home/mingtao/catkin_ws/src/Tianmou_SLAM/Vocabulary/ORBvoc.txt",
+        "/home/mingtao/catkin_ws/src/Tianmou_SLAM/Examples_old/Stereo/tianmou_config2.yaml"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "ROS_MASTER_URI",
+          "value": "http://localhost:11311"
+        },
+        {
+          "name": "ROS_PACKAGE_PATH",
+          "value": "${workspaceFolder}"
+        },
+        {
+          "name": "ROS_ROOT",
+          "value": "/opt/ros/noetic/share/ros"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build Tianmou_SLAM"
+    }
+  ]
+}

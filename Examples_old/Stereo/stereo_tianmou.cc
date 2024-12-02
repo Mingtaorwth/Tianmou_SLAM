@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
     vector<ORB_SLAM3::IMU::Point> vImuMeas;
 
-    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::STEREO, true, 0, file_name);
+    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::IMU_STEREO, true, 0, file_name);
     float imageScale = SLAM.GetImageScale();
 
     DualCamera camera;
@@ -81,82 +81,75 @@ int main(int argc, char **argv) {
     double previous_tframe = ros::Time::now().toSec();  // 记录上一帧的时间戳
     IMUData previous_imu_data; // 用于存储上一帧的 IMU 数据
 
+    // 初始化帧率相关变量
+    double total_time = 0.0;  // 累积时间
+    int frame_count = 0;      // 帧计数
+    double fps = 0.0;         // 当前帧率
+
     while (ros::ok()) {
         // 获取当前时间戳
         ros::Time current_time = ros::Time::now();
-        double tframe = current_time.toSec();  // 获取时间戳，保留小数精度
-        // std::cout << std::fixed << std::setprecision(9) << "Image Timestamp: " << tframe << std::endl;
+        double tframe = current_time.toSec();
 
-        // 获取当前图像
+        // 如果需要更高精度，可以使用 SteadyClock：
+        // auto t_start = std::chrono::steady_clock::now();
+
+        // 处理图像和IMU数据的逻辑
         cv::Mat leftRGB = camera.cameraL->getIxy();
         cv::Mat rightRGB = camera.cameraR->getIxy();
         cv::flip(leftRGB, leftRGB, 1);
         cv::flip(rightRGB, rightRGB, 1);
-
         leftRGB.convertTo(leftRGB, CV_8UC1);
         rightRGB.convertTo(rightRGB, CV_8UC1);
-
         cv::remap(leftRGB, leftRGB, map1_left, map2_left, cv::INTER_LINEAR);
         cv::remap(rightRGB, rightRGB, map1_right, map2_right, cv::INTER_LINEAR);
 
-        // 处理从上一帧到当前帧之间的IMU数据
+        // 筛选当前帧时间段内的IMU数据
         std::vector<IMUData> imu_data_in_range;
-        
-        // 先将上一帧的IMU数据加入
-        // imu_data_in_range.push_back(previous_imu_data);
-
-        // 然后筛选当前帧时间段内的IMU数据
         for (auto it = imu_data_buffer.begin(); it != imu_data_buffer.end();) {
             if (it->timestamp >= previous_tframe && it->timestamp < tframe) {
                 imu_data_in_range.push_back(*it);
-                it = imu_data_buffer.erase(it);  // 删除已处理的数据
+                it = imu_data_buffer.erase(it);
             } else {
                 ++it;
             }
         }
 
-        // 打印这段时间内的IMU数据
-        // for (const auto& imu : imu_data_in_range) {
-        //     std::cout << "IMU Data - Timestamp: " << imu.timestamp << std::endl;
-        //     std::cout << "Linear Acceleration - x: " << imu.ax << ", y: " << imu.ay << ", z: " << imu.az << std::endl;
-        //     std::cout << "Angular Velocity - x: " << imu.gx << ", y: " << imu.gy << ", z: " << imu.gz << std::endl;
-        // }
+        // 转换 IMU 数据为 ORB-SLAM 格式
         vImuMeas.clear();
-
-        for(const auto& imu : imu_data_in_range){
+        for (const auto& imu : imu_data_in_range) {
             ORB_SLAM3::IMU::Point lastPoint(imu.ax, imu.ay, imu.az,
                                             imu.gx, imu.gy, imu.gz,
                                             imu.timestamp);
             vImuMeas.push_back(lastPoint);
-            if(isnan(imu.ax) || isnan(imu.ay) || isnan(imu.az) ||
-               isnan(imu.gx) || isnan(imu.gy) || isnan(imu.gz) ||
-               isnan(imu.timestamp)){
-                exit(-1);
-            }
         }
 
-        cout << "Nums: " << vImuMeas.size() << endl;
+        // 执行 SLAM 处理
+        Sophus::SE3f Tcw = SLAM.TrackStereo(leftRGB, rightRGB, tframe, vImuMeas);
 
-        // 使用图像和IMU数据进行SLAM处理
-        Sophus::SE3f Tcw = SLAM.TrackStereo(leftRGB, rightRGB, tframe);
+        // 计算帧率
+        frame_count++;
+        double frame_time = tframe - previous_tframe; // 当前帧间隔
+        total_time += frame_time;
+        if (total_time >= 1.0) {  // 每秒更新一次帧率
+            fps = frame_count / total_time;
+            total_time = 0.0;
+            frame_count = 0;
 
-        // ORB_SLAM3::Atlas* mpAtlas;
-        // ORB_SLAM3::Map* pActiveMap = mpAtlas->GetCurrentMap();
+            // 打印帧率信息
+            std::cout << std::fixed << std::setprecision(2)
+                    << "FPS: " << fps << std::endl;
+        }
 
-        // const vector<ORB_SLAM3::MapPoint*> &vpMPs = pActiveMap->GetAllMapPoints();
-        // cout << vpMPs.size() << endl;
-
-        // ROS 回调处理
+        // ROS 回调
         ros::spinOnce();
-
         loop_rate.sleep();
 
         // 更新前一帧时间戳和上一帧的IMU数据
         previous_tframe = tframe;
         if (!imu_data_in_range.empty()) {
-            previous_imu_data = imu_data_in_range.back(); // 将当前帧的最后一个IMU数据作为下一帧的上一帧
+            previous_imu_data = imu_data_in_range.back();
         }
-
     }
 
     SLAM.Shutdown();
